@@ -10,19 +10,52 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class Main {
-
+	
+		private static final String URL = "jdbc:mysql://localhost:3306/db_nations";
+		private static final String USERNAME = "root";
+		private static final String PASSWORD = "root";
+				
 	public static void main(String[] args) {
 		
-		Scanner sc = new Scanner(System.in);
+//		getAllCountries();
+		advancedSearch();
+	}
+	
+	private static void getAllCountries() {
+
+		try(Connection con = DriverManager.getConnection(URL, USERNAME, PASSWORD)) {
+			final String sql = "SELECT countries.name, countries.country_id, regions.name, continents.name "
+			+ " FROM countries "
+			+ "	JOIN regions "
+			+ "		ON countries.region_id = regions.region_id "
+			+ "	JOIN continents "
+			+ "		ON regions.continent_id = continents.continent_id "
+			+ " order by countries.name";
+	
+		PreparedStatement ps = con.prepareStatement(sql);
 		
-		String url = "jdbc:mysql://localhost:3306/db_nations";
-		String username = "root";
-		String password = "root";
+		ResultSet rs = ps.executeQuery();
 		
-		System.out.println("Type a nation: ");
-		String userInput = sc.nextLine();
+		while(rs.next()) {
+			
+			final String countryName = rs.getString(1);
+			final int countryId = rs.getInt(2);
+			final String regionName = rs.getString(3);
+			final String continentName = rs.getString(4);
+			
+			System.out.println(countryName + " | " + countryId + " - " + regionName + " - " + continentName);
+		}
 		
-		try(Connection con = DriverManager.getConnection(url, username, password)) {
+			} catch(SQLException ex) {
+				System.err.println("Error: " + ex.getMessage());
+			}
+		}
+	
+	private static void advancedSearch() {
+		try(Connection con = DriverManager.getConnection(URL, USERNAME, PASSWORD); Scanner sc = new Scanner(System.in)) {
+					
+			System.out.println("Type a nation: ");
+			String userInput = sc.nextLine();
 			
 			final String userQuery = "SELECT countries.country_id, countries.name "
 								   + " FROM countries "
@@ -106,31 +139,8 @@ public class Main {
 								+ "\nPopulation: " + population + ""
 								+ "\nGDP: " + gdp);
 			
-			
-			//			final String sql = "SELECT countries.name, countries.country_id, regions.name, continents.name "
-//					+ " FROM countries "
-//					+ "	JOIN regions "
-//					+ "		ON countries.region_id = regions.region_id "
-//					+ "	JOIN continents "
-//					+ "		ON regions.continent_id = continents.continent_id "
-//					+ " order by countries.name";
-			
-//			PreparedStatement ps = con.prepareStatement(sql);
-			
-//			ResultSet rs = ps.executeQuery();
-			
-//			while(rs.next()) {
-//				
-//				final String countryName = rs.getString(1);
-//				final int countryId = rs.getInt(2);
-//				final String regionName = rs.getString(3);
-//				final String continentName = rs.getString(4);
-//				
-//				System.out.println(countryName + " | " + countryId + " - " + regionName + " - " + continentName);
-//			}
-			
 		} catch(SQLException ex) {
 			System.err.println("Error: " + ex.getMessage());
 		}
 	}
-}
+	}
